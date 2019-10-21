@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Simple Cart JS</title>
+</head>
+
+<body>
+    <style>
+        body {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            padding: 0;
+            margin: 0;
+            background: rgba(0, 0, 0, 0.2);
+            color: rgba(255, 255, 255, 1)
+        }
+
+        h1 {
+            background: rgba(0, 0, 0, 0.2);
+            display: block;
+            width: 100%
+        }
+
+        .products {
+            display: flex;
+            flex-direction: row;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .product {
+            display: flex;
+            flex-direction: column;
+            margin: 50px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 10px
+        }
+
+        .cart {
+            display: flex;
+            flex-direction: column;
+            background: rgba(0, 0, 0, 0.7);
+        }
+
+        .cart ul {
+            padding: 0 10px
+        }
+
+        .cart ul li {
+            list-style-type: none;
+
+        }
+
+        .cartTitle {
+            text-align: center;
+        }
+
+        #removeAll {}
+
+        .console {
+            color: #000;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .console ul {
+            padding: 40px
+        }
+
+        .console ul li {
+            list-style-type: decimal;
+        }
+
+        #order {
+            border: rgba(0, 0, 0, 0.5) solid 3px;
+
+        }
+
+        #order table {
+            text-align: right;
+            color: rgba(0, 0, 0, 0.7);
+        }
+
+        #order h3 {
+            color: rgba(0, 0, 0, 0.7);
+            text-align: center;
+        }
+    </style>
+    <h1>My Simple Cart JS</h1>
+    <div class="products">
+        <div class="product" data-cart-name="Яблоки" data-cart-price="50">
+            <h3 class="title">Яблоки</h3>
+            <p>Цена: <b>50</b></p>
+            <button class="add">ADD</button>
+        </div>
+        <div class="product" data-cart-name="Груши" data-cart-price="50">
+            <h3 class="title">Груши</h3>
+            <p>Цена: <b>50</b></p>
+            <button class="add">ADD</button>
+        </div>
+        <div class="product" data-cart-name="Апельсины" data-cart-price="50">
+            <h3 class="title">Апельсины</h3>
+            <p>Цена: <b>50</b></p>
+            <button class="add">ADD</button>
+        </div>
+    </div>
+    <div class="cart">
+        <h3 class="cartTitle">Корзина</h3>
+        <ul>
+            Корзина пуста
+        </ul>
+        <div class="total-price">
+            <h3>Total</h3>
+            <b> 0 </b>
+        </div>
+        <button id="removeAll">Очистить корзину</button>
+        <button id="send-order">Заказать</button>
+    </div>
+    <div id="order">
+
+    </div>
+    <script>
+
+
+        let Product = function (name, price, count) {
+            this.name = name
+            this.price = price
+            this.count = count
+        }
+        // add button click event
+        let productsLayout = document.querySelector('.products');
+        productsLayout.onclick = function (event) {
+            let target = event.target
+            if (target.className == "add") {
+                let name = target.parentNode.getAttribute("data-cart-name")
+                let price = target.parentNode.getAttribute("data-cart-price")
+                add(name, price);
+            }
+        }
+        let add = function (name, price) {
+            if (cart.length == 0) {
+                cart.push(new Product(name, price, 1));
+            } else {
+                let result = false;
+                for (let i = 0; i < cart.length; i++) {
+                    if (cart[i].name == name) {
+                        cart[i].count++
+                        result = true
+                        break;
+                    } else {
+                        result = false
+                    }
+                }
+                if (result == false) {
+                    cart.push(new Product(name, price, 1));
+                }
+
+            }
+            updateCart();
+        }
+        // end add button click
+        // cart click event
+        let cartLayout = document.querySelector(".cart")
+        cartLayout.onclick = function (event) {
+            let target = event.target
+            if (target.className == "plus") {
+                let id = target.getAttribute("data-id");
+                cart[id].count++
+            }
+            if (target.className == "remove") {
+                let id = target.getAttribute("data-id");
+                cart[id].count--
+            }
+            if (target.id == "removeAll") {
+                cart = [];
+            }
+            if (target.id == "send-order") {
+                if (cart.length > 0) {
+                    sendOrder()
+                }
+            }
+            updateCart();
+        }
+        // end
+        // update cart
+        let updateCart = function () {
+
+            let html = "";
+            let cartList = cartLayout.querySelector(".cart ul")
+            for (let i = 0; i < cart.length; i++) {
+                if (cart[i].count <= 0) {
+                    cart.splice(i, 1)
+                    continue;
+                }
+                let name = cart[i].name
+                let price = cart[i].price
+                let count = cart[i].count
+                let id = i
+
+                if (cart.length > 0) {
+                    html += `<li><button class="plus" data-id="${id}"> + </button>
+                                 <button class="remove" data-id="${id}"> - </button>
+                                <span> ${name} </span> || <b>${price}</b> || ${count} || </li>`;
+                }
+            }
+            if (cart.length == 0) {
+                html = "Корзина пуста"
+            }
+            let totalPriceLabel = document.querySelector(".total-price b");
+            cartList.innerHTML = html;
+            totalPriceLabel.innerHTML = totalPrice();
+            saveCart()
+        }
+
+        let totalPrice = function () {
+            let TotalPrice = 0;
+            for (let i = 0; i < cart.length; i++) {
+                TotalPrice += parseInt(cart[i].price) * cart[i].count
+            }
+            return TotalPrice;
+        }
+
+        let saveCart = function () {
+            localStorage.setItem("SimpleCartJS", JSON.stringify(cart))
+        }
+        let loadCart = function () {
+            // console.log(cart = JSON.parse(localStorage.getItem("Simple Cart JS")))
+            return JSON.parse(localStorage.getItem("SimpleCartJS"))
+        }
+        let sendOrder = function () {
+            let orderLayout = document.querySelector("#order")
+            let html = "";
+            if (cart.length > 0) {
+                html += "<h3>Чек</h3>"
+                html += "<table>"
+                html += "<tr>"
+                html += "<th>№</th>"
+                html += "<th>Наименование</th>"
+                html += "<th>Цена</th>"
+                html += "<th>Количество</th>"
+                html += "</tr>"
+                for (let i = 0; i < cart.length; i++) {
+                    html += "<tr>"
+                    html += `<td>${i + 1}</td>`
+                    html += `<td>${cart[i].name}</td>`
+                    html += `<td>${cart[i].price}</td>`
+                    html += `<td>${cart[i].count}</td>`
+                    html += "</tr>"
+                }
+                html += "<tr>"
+                html += "<th></th>"
+                html += "<th></th>"
+                html += "<th>Итого: </th>"
+                html += `<th>${totalPrice()}</th>`
+                html += "</tr>"
+                html += "</table>"
+                orderLayout.innerHTML = html
+            } else {
+                orderLayout.innerHTML = html
+                alert("Корзина пуста");
+            }
+        }
+        let cart = [];
+        cart = loadCart();
+        updateCart();
+    </script>
+</body>
+
+</html>
